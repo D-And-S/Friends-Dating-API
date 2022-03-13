@@ -1,4 +1,8 @@
 using Friends_Date_API.Data;
+using Friends_Date_API.Extension;
+using Friends_Date_API.Interfaces;
+using Friends_Date_API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -8,10 +12,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Friends_Date_API
@@ -30,18 +36,20 @@ namespace Friends_Date_API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-            services.AddDbContextPool<DataContext>(options=>
-                     options.UseSqlServer(_config.GetConnectionString("DefaultConnection")));
-
+            //Created the Extension method of IServiceCollection for db connecton and token
+            services.AddApplicationServices(_config);
             services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Friends_Date_API", Version = "v1" });
-            });
 
-            // TO RESOLVE CORS POLICY
+            //Extention Method
+            services.AddSwaggerServices();
+
+            //Extention Method
+            services.AddIdentitySerives(_config);
+
+            // To resolve cors policy
             services.AddCors();
+
+          
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -58,7 +66,9 @@ namespace Friends_Date_API
 
             app.UseRouting();
 
-            app.UseCors(policy=>policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200"));
+            app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200"));
+
+            app.UseAuthentication(); // JWT Authentication
 
             app.UseAuthorization();
 

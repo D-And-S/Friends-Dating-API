@@ -1,6 +1,7 @@
 ﻿using Friends_Date_API.Data;
 using Friends_Date_API.DTO;
 using Friends_Date_API.Entities;
+using Friends_Date_API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
@@ -13,14 +14,17 @@ namespace Friends_Date_API.Controllers
     public class AccountController : BaseAPIController
     {
         private readonly DataContext _context;
+        private readonly ITokenService _tokenService;
 
-        public AccountController(DataContext context)
+        public AccountController(DataContext context,
+                                 ITokenService tokenService)
         {
             _context = context;
+            _tokenService = tokenService;
         }
 
         [HttpPost("Register")]
-        public async Task<ActionResult<AppUser>> Register(RegisterDto registerDto)
+        public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         {
             //check user name is exist or not
             if (await UserExists(registerDto.UserName))
@@ -40,7 +44,11 @@ namespace Friends_Date_API.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return user;
+            return new UserDto
+            {
+                Username = registerDto.UserName,
+                Token = _tokenService.CreateToken(user)
+            };
         }
 
         private async Task<bool> UserExists(string username)
@@ -49,7 +57,7 @@ namespace Friends_Date_API.Controllers
         }
 
         [HttpPost("Login")]
-        public async Task<ActionResult<AppUser>> Login(LoginDto loginDto)
+        public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
             //fetch and check Data from user
             var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName == loginDto.UserName.ToLower());
@@ -59,7 +67,7 @@ namespace Friends_Date_API.Controllers
             //if the user name match then we convert selected user passwordSalt which give us password hash value in byte string
             using var hmac = new HMACSHA512(user.PasswordSalt);
 
-            // we convert user entered password to byte string which
+            // we convert user entered password to byte string 
             var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
 
             // check weather databash hash and user entered password hash matched
@@ -69,7 +77,11 @@ namespace Friends_Date_API.Controllers
                     return Unauthorized("Invalid Password");
             }
 
-            return user;
+            return new UserDto
+            {
+                Username = loginDto.UserName,
+                Token = _tokenService.CreateToken(user)
+            };
         }
     }
 }
