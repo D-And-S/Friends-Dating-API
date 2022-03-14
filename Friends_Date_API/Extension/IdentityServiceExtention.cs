@@ -24,7 +24,7 @@ namespace Friends_Date_API.Extension
                             ValidateIssuerSigningKey = true, // server will sign the token and we need to tell the server that it is valid token.
                             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"])), // get or set the security key
                             ValidateIssuer = false, // api server will issue the key
-                            ValidateAudience = false, // who uses the toke? Angular
+                            ValidateAudience = false, // who uses the token as audience? Angular
                         };
                     });
             return services;

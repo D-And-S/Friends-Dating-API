@@ -47,9 +47,7 @@ namespace Friends_Date_API
             services.AddIdentitySerives(_config);
 
             // To resolve cors policy
-            services.AddCors();
-
-          
+            services.AddCors();        
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -66,8 +64,8 @@ namespace Friends_Date_API
 
             app.UseRouting();
 
-            app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200"));
-
+            app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200"));
+           
             app.UseAuthentication(); // JWT Authentication
 
             app.UseAuthorization();
