@@ -7,7 +7,8 @@ namespace Friends_Date_API.DTO
         [Required]
         public string UserName { get; set; }
 
-        [Required]
+        [Required] 
+        [StringLength(15, MinimumLength =4)]
         public string Password { get; set; }
     }
 }
