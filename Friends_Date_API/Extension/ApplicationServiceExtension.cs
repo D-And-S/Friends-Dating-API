@@ -1,4 +1,5 @@
 ﻿using Friends_Date_API.Data;
+using Friends_Date_API.Helpers;
 using Friends_Date_API.Interfaces;
 using Friends_Date_API.Services;
 using Microsoft.EntityFrameworkCore;
@@ -13,13 +14,16 @@ namespace Friends_Date_API.Extension
      */
     public static class ApplicationServiceExtension
     {
-        // must reference by this keyword and the class which specity which class this method belongs to
+        // must reference by this keyword and the class which specify which class this method belongs to
         // return type must be the class which i want to create extention
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
             //Used addscoped because we want to alive it until single request is finished
             services.AddScoped<ITokenService, TokenService>();
-
+            services.AddScoped<IUserRepository,UserRepository>();
+            
+            // this will find and initialize the auto mapper profile
+            services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
             services.AddDbContextPool<DataContext>(options =>
                      options.UseSqlServer(config.GetConnectionString("DefaultConnection")));
 

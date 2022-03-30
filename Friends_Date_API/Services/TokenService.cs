@@ -21,7 +21,7 @@ namespace Friends_Date_API.Services
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"]));
         }
 
-        public string CreateToken(AppUser user)
+        public string CreateToken(User user)
         {
             //what claims [what type of data we want to store like
             //{"nameId": "local", role:"Member","nbf(in which time token will be available)":15551, "expiredate":15597,"issuDat":156587}]

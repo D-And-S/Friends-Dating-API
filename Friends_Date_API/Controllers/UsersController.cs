@@ -1,5 +1,8 @@
-﻿using Friends_Date_API.Data;
+﻿using AutoMapper;
+using Friends_Date_API.Data;
+using Friends_Date_API.DTO;
 using Friends_Date_API.Entities;
+using Friends_Date_API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,32 +14,33 @@ namespace Friends_Date_API.Controllers
 {
     public class UsersController : BaseAPIController
     {
-        private readonly DataContext _context;
+        private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
 
-        public UsersController(DataContext context)
+        public UsersController(IUserRepository userRepository, IMapper mapper)
         {
-            _context = context;
+            _userRepository = userRepository;
+            _mapper = mapper;
         }
-
-        // Return List of AppUser
         
         [HttpGet]
-        [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<AppUser>>> GetAllUsers()
-        {        
-            return await _context.Users.ToListAsync();
-        }
-
-        //since we return the single user that's why our return type is AppUser
-        
-        [HttpGet("{id}")]
-        [Authorize]
-        public async Task<ActionResult<AppUser>> GetUser(int id)
+        public async Task<ActionResult<IEnumerable<MemberDto>>> GetAllUsers()
         {
-            return await _context.Users.FindAsync(id);
+            return Ok(await _userRepository.GetAllMembersAsync());
+
         }
-        
+    
+        [HttpGet("{id}")]
+        public async Task<ActionResult<MemberDto>> GetUser(int id)
+        {
+            var user = await _userRepository.GetUserByIdAsync(id);
+            return _mapper.Map<MemberDto>(user);
+        }
+
+        [HttpGet("GetUserByUsername/{username}")]
+        public async Task<ActionResult<MemberDto>> GetUser(string username)
+        {
+            return await _userRepository.GetMemberByUserName(username);
+        }
     }
-
-
 }

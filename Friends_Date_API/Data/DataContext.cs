@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Friends_Date_API.Data
 {
+    // Represent the session with database
     public class DataContext : DbContext
     {
         public DataContext(DbContextOptions options) : base(options)
@@ -10,7 +11,6 @@ namespace Friends_Date_API.Data
 
         }
         
-
-        public DbSet<AppUser> Users { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }

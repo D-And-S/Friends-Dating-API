@@ -4,6 +4,6 @@ namespace Friends_Date_API.Interfaces
 {
     public interface ITokenService
     {
-        public string CreateToken(AppUser user);
+        public string CreateToken(User user);
     }
 }

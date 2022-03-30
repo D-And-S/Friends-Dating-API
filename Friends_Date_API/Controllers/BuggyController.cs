@@ -22,7 +22,7 @@ namespace Friends_Date_API.Controllers
         }
 
         [HttpGet("not-found")]
-        public ActionResult<AppUser> GetNotFound()
+        public ActionResult<User> GetNotFound()
         {
             var thing = _context.Users.Find(-1);
 
