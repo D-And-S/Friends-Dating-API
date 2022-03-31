@@ -13,7 +13,7 @@ namespace Friends_Date_API.Interfaces
         Task<User> GetUserByIdAsync(int id);
         Task<User> GetUserByUsernameAsync(string username);
         Task<IEnumerable<MemberDto>> GetAllMembersAsync();
-        Task<MemberDto> GetMemberByUserName(string username);
+        Task<MemberDto> GetMemberByUserNameAsync(string username);
 
     }
 }

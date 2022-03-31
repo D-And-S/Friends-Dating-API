@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Friends_Date_API.Controllers
@@ -24,10 +25,10 @@ namespace Friends_Date_API.Controllers
         }
         
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<MemberDto>>> GetAllUsers()
         {
             return Ok(await _userRepository.GetAllMembersAsync());
-
         }
     
         [HttpGet("{id}")]
@@ -40,7 +41,23 @@ namespace Friends_Date_API.Controllers
         [HttpGet("GetUserByUsername/{username}")]
         public async Task<ActionResult<MemberDto>> GetUser(string username)
         {
-            return await _userRepository.GetMemberByUserName(username);
+            return await _userRepository.GetMemberByUserNameAsync(username);
+        }
+
+        [HttpPut("UpdateUser")]
+        public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdateDto)
+        {
+            //it gives the user name from toaken that API uses to authenticate of the user
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _userRepository.GetUserByUsernameAsync(username);
+            
+            _mapper.Map(memberUpdateDto,user);
+
+            _userRepository.Update(user);
+
+            if (await _userRepository.SaveAllsynch()) return NoContent();
+
+            return BadRequest("Faild to update user");
         }
     }
 }

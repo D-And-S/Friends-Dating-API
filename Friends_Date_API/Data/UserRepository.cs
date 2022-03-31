@@ -56,7 +56,7 @@ namespace Friends_Date_API.Data
                 .ToListAsync();
         }
 
-        public async Task<MemberDto> GetMemberByUserName(string username)
+        public async Task<MemberDto> GetMemberByUserNameAsync(string username)
         {
 
             //return await _context.Users
