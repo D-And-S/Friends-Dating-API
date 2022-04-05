@@ -60,7 +60,10 @@ namespace Friends_Date_API.Controllers
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
             //fetch and check Data from user
-            var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName == loginDto.UserName.ToLower());
+            var user = await _context.Users
+                .Include(p=>p.Photos)
+                .SingleOrDefaultAsync(x => x.UserName == loginDto.UserName.ToLower());
+
             if (user == null)
                 return BadRequest("Invalid Username");
 
@@ -80,7 +83,8 @@ namespace Friends_Date_API.Controllers
             return new UserDto
             {
                 Username = loginDto.UserName,
-                Token = _tokenService.CreateToken(user)
+                Token = _tokenService.CreateToken(user),
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
             };
         }
     }

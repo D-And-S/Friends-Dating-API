@@ -39,7 +39,7 @@ namespace Friends_Date_API.Data
                 .ToListAsync();
         }
 
-        public async Task<bool> SaveAllsynch()
+        public async Task<bool> SaveAllsync()
         {
             return await _context.SaveChangesAsync() > 0;
         }
