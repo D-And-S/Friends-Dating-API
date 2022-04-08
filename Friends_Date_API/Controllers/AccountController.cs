@@ -1,4 +1,5 @@
-﻿using Friends_Date_API.Data;
+﻿using AutoMapper;
+using Friends_Date_API.Data;
 using Friends_Date_API.DTO;
 using Friends_Date_API.Entities;
 using Friends_Date_API.Interfaces;
@@ -15,12 +16,15 @@ namespace Friends_Date_API.Controllers
     {
         private readonly DataContext _context;
         private readonly ITokenService _tokenService;
+        private readonly IMapper _mapper;
 
         public AccountController(DataContext context,
-                                 ITokenService tokenService)
+                                 ITokenService tokenService,
+                                 IMapper mapper)
         {
             _context = context;
             _tokenService = tokenService;
+            _mapper = mapper;
         }
 
         [HttpPost("Register")]
@@ -30,16 +34,16 @@ namespace Friends_Date_API.Controllers
             if (await UserExists(registerDto.UserName))
                 return BadRequest("Username is taken");
 
+            var user = _mapper.Map<User>(registerDto);
+
             //use security class to make password hast
             using var hmac = new HMACSHA512();
 
             //set value to Users Object
-            var user = new User
-            {
-                UserName = registerDto.UserName.ToLower(),
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
-                PasswordSalt = hmac.Key
-            };
+
+            user.UserName = registerDto.UserName.ToLower();
+            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password));
+            user.PasswordSalt = hmac.Key;
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -47,7 +51,8 @@ namespace Friends_Date_API.Controllers
             return new UserDto
             {
                 Username = registerDto.UserName,
-                Token = _tokenService.CreateToken(user)
+                Token = _tokenService.CreateToken(user),
+                KnownAs = registerDto.KnownAs,
             };
         }
 
@@ -61,7 +66,7 @@ namespace Friends_Date_API.Controllers
         {
             //fetch and check Data from user
             var user = await _context.Users
-                .Include(p=>p.Photos)
+                .Include(p => p.Photos)
                 .SingleOrDefaultAsync(x => x.UserName == loginDto.UserName.ToLower());
 
             if (user == null)
@@ -84,7 +89,8 @@ namespace Friends_Date_API.Controllers
             {
                 Username = loginDto.UserName,
                 Token = _tokenService.CreateToken(user),
-                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
+                KnownAs = user.KnownAs
             };
         }
     }
