@@ -28,8 +28,9 @@ namespace Friends_Date_API.Services
             //we are gonna put inside this token
             var claims = new List<Claim>
             {
-                 // store username in nameID
-                 new Claim(JwtRegisteredClaimNames.NameId, user.UserName)
+                 // store userId in nameID
+                 new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
+                 new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName)
             };
 
             //We will create Credential where we store algorithmvalue into _key (config[tokenKey])

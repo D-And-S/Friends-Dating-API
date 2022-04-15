@@ -19,7 +19,7 @@ namespace Friends_Date_API.Helpers
 
             CreateMap<Photo, PhotoDto>();
             CreateMap<MemberUpdateDto, User>();
-            CreateMap<RegisterDto, User>();
+            CreateMap<RegisterDto, User>();    
         }
     }
 }

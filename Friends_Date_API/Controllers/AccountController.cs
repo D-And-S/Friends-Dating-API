@@ -53,6 +53,7 @@ namespace Friends_Date_API.Controllers
                 Username = registerDto.UserName,
                 Token = _tokenService.CreateToken(user),
                 KnownAs = registerDto.KnownAs,
+                Gender = registerDto.Gender
             };
         }
 
@@ -90,7 +91,8 @@ namespace Friends_Date_API.Controllers
                 Username = loginDto.UserName,
                 Token = _tokenService.CreateToken(user),
                 PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
-                KnownAs = user.KnownAs
+                KnownAs = user.KnownAs,
+                Gender = user.Gender
             };
         }
     }

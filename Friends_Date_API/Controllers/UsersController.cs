@@ -3,6 +3,7 @@ using Friends_Date_API.Data;
 using Friends_Date_API.DTO;
 using Friends_Date_API.Entities;
 using Friends_Date_API.Extension;
+using Friends_Date_API.Helpers;
 using Friends_Date_API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -21,7 +22,7 @@ namespace Friends_Date_API.Controllers
         private readonly IMapper _mapper;
         private readonly IPhotoService _photoService;
 
-        public UsersController(IUserRepository userRepository, 
+        public UsersController(IUserRepository userRepository,
                                IMapper mapper,
                                IPhotoService photoService)
         {
@@ -29,14 +30,25 @@ namespace Friends_Date_API.Controllers
             _mapper = mapper;
             _photoService = photoService;
         }
-        
+
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<MemberDto>>> GetAllUsers()
+        public async Task<ActionResult<IEnumerable<MemberDto>>> GetAllUsers([FromQuery] UserParams userParams)
         {
-            return Ok(await _userRepository.GetAllMembersAsync());
+            var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+            userParams.CurrentUsername = user.UserName;
+
+            if (string.IsNullOrEmpty(userParams.Gender))
+                userParams.Gender = user.Gender == "male" ? "female" : "male";
+
+            var users = await _userRepository.GetAllMembersAsync(userParams);
+
+            Response.AddPaginationHeader(users.CurrentPage, users.PageSize,
+                users.TotalCount, users.TotalPages);
+
+            return Ok(users);
         }
-    
+
         [HttpGet("{id}")]
         public async Task<ActionResult<MemberDto>> GetUser(int id)
         {
@@ -55,8 +67,8 @@ namespace Friends_Date_API.Controllers
         {
             //User.GetUsername() gives the user name from toaken that API uses to authenticate of the user
             var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
-            
-            _mapper.Map(memberUpdateDto,user);
+
+            _mapper.Map(memberUpdateDto, user);
 
             _userRepository.Update(user);
 
@@ -107,7 +119,7 @@ namespace Friends_Date_API.Controllers
             if (photo.IsMain) return BadRequest("This is already your main photo");
 
             //get the current main photo and make it false
-            var currntMainPhoto = user.Photos.FirstOrDefault(x=>x.IsMain);
+            var currntMainPhoto = user.Photos.FirstOrDefault(x => x.IsMain);
             if (currntMainPhoto != null) currntMainPhoto.IsMain = false;
             photo.IsMain = true;
 
@@ -121,14 +133,14 @@ namespace Friends_Date_API.Controllers
         public async Task<ActionResult> DeletePhoto(int photoId)
         {
             var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
-            
-            var photo = user.Photos.FirstOrDefault(x=>x.Id == photoId);
+
+            var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
 
             if (photo == null) return NotFound();
 
             if (photo.IsMain) return BadRequest("You cannot delete your main photo");
 
-            if(photo.PublicId != null)
+            if (photo.PublicId != null)
             {
                 var result = await _photoService.DeletePhotoAsync(photo.PublicId);
 

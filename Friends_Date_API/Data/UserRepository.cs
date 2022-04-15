@@ -2,8 +2,10 @@
 using AutoMapper.QueryableExtensions;
 using Friends_Date_API.DTO;
 using Friends_Date_API.Entities;
+using Friends_Date_API.Helpers;
 using Friends_Date_API.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -49,23 +51,60 @@ namespace Friends_Date_API.Data
             _context.Entry(user).State = EntityState.Modified;
         }
 
-        public async Task<IEnumerable<MemberDto>> GetAllMembersAsync()
+        public async Task<IEnumerable<MemberDto>> GetEveryMembersAsync()
         {
             return await _context.Users
                 .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
         }
 
+        public async Task<PageList<MemberDto>> GetAllMembersAsync(UserParams userParams)
+        {
+            // this will not work if we want to filter 
+            /***
+              var query = _context.Users
+                .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
+                .AsNoTracking() // this will turn of the EF tracker where query will not execute just read the object.
+                .AsQueryable();
+              query = query.Where(u => u.UserName != userParams.CurrentUsername);
+            ***/
+
+            // we will filter data first then we map data 
+            var query = _context.Users.AsQueryable();
+            query = query.Where(u => u.UserName != userParams.CurrentUsername);
+            query = query.Where(u => u.Gender == userParams.Gender);
+
+            var minDob = DateTime.Today.AddYears(-userParams.MaxAge - 1);
+
+            var maxDob = DateTime.Today.AddYears(-userParams.MinAge);
+
+            query = query.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob);
+
+            //switch expression
+            query = userParams.OrderBy switch
+            {
+                "created"=> query.OrderByDescending(u=>u.Created),
+                _ => query.OrderByDescending(u=>u.LastActive) // for defult case
+            };
+
+            // we want to return pageList of member Dto
+            return await PageList<MemberDto>.CreateAsync(query
+                .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
+                .AsNoTracking(), userParams.PageNumber, userParams.PageSize);
+        }
+
         public async Task<MemberDto> GetMemberByUserNameAsync(string username)
         {
 
-            //return await _context.Users
-            //    .Where(x => x.UserName == username)
-            //    .Select(user => new MemberDto
-            //    {
-            //        UserName = user.UserName,
-            //        Id = user.Id
-            //    }).SingleOrDefaultAsync();
+            /***
+              return await _context.Users
+                .Where(x => x.UserName == username)
+                .Select(user => new MemberDto
+                {
+                    UserName = user.UserName,
+                    Id = user.Id
+                }).SingleOrDefaultAsync();
+            ***/
 
             // Instead of select we can so automapper project to
             return await _context.Users
