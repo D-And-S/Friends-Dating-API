@@ -80,7 +80,7 @@ namespace Friends_Date_API.Data
 
             query = query.Where(u => u.DateOfBirth >= minDob && u.DateOfBirth <= maxDob);
 
-            //switch expression
+            //switch expressio
             query = userParams.OrderBy switch
             {
                 "created"=> query.OrderByDescending(u=>u.Created),
@@ -106,11 +106,17 @@ namespace Friends_Date_API.Data
                 }).SingleOrDefaultAsync();
             ***/
 
+            var query = (from u in _context.Users.Where(u => u.UserName == username) select u)
+                        .ProjectTo<MemberDto>(_mapper.ConfigurationProvider);
+
+            return await query.SingleOrDefaultAsync();
+
             // Instead of select we can so automapper project to
-            return await _context.Users
-                    .Where(p => p.UserName == username)
-                    .ProjectTo<MemberDto>(_mapper.ConfigurationProvider) // configuration provider will detect our automapper profile
-                    .SingleOrDefaultAsync();
+            //return await _context.Users
+            //        .Where(p => p.UserName == username)
+            //        .ProjectTo<MemberDto>(_mapper.ConfigurationProvider) // configuration provider will detect our automapper profile
+            //        .SingleOrDefaultAsync();
+
         }
     }
 }

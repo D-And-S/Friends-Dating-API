@@ -25,10 +25,8 @@ namespace Friends_Date_API.Entities
         public string City { get; set; }
         public string Country { get; set; }
         public ICollection<Photo> Photos { get; set; }
-
-        //public int GetAge()
-        //{
-        //    return DateOfBirth.CalculateAge();
-        //}
+        public ICollection<UserLike> LikedByUsers { get; set; } // list of user that like currently logged in user (amake koto jon like korse)
+        public ICollection<UserLike> LikedUser { get; set; } // list of user liked by currently logged in user (ami koto jon ke like korechi)
     }
+
 }
