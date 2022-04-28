@@ -19,7 +19,7 @@ namespace Friends_Date_API.Data
                 .HasKey(k => new { k.SourceUserId, k.LikeduserId });
 
             modelBuilder.Entity<UserLike>()
-                .HasOne(s => s.SourceUser) 
+                .HasOne(s => s.SourceUser)
                 .WithMany(l => l.LikedUser)
                 .HasForeignKey(l => l.SourceUserId)
                 .OnDelete(DeleteBehavior.NoAction);
@@ -30,9 +30,25 @@ namespace Friends_Date_API.Data
                .HasForeignKey(l => l.LikeduserId)
                .OnDelete(DeleteBehavior.NoAction);
 
+
+            // Many to Many relationship for Message
+            // one recipient will received many messae
+            modelBuilder.Entity<Message>()
+                .HasOne(u => u.Recipient)
+                .WithMany(m => m.MessageReceived)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // one sender can send many message
+            modelBuilder.Entity<Message>()
+               .HasOne(u => u.Sender)
+               .WithMany(m => m.MessageSent)
+               .OnDelete(DeleteBehavior.Restrict);
+
         }
 
         public DbSet<User> Users { get; set; }
         public DbSet<UserLike> Likes { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        
     }
 }

@@ -26,7 +26,9 @@ namespace Friends_Date_API.Extension
             services.AddScoped<LogUserActivity>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ILikesRepository, LikesRepository>();
-            
+            services.AddScoped<ILikesRepository, LikesRepository>();
+            services.AddScoped<IMessageRepository, MessageRepository>();
+
             // this will find and initialize the auto mapper profile
             services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
             services.AddDbContextPool<DataContext>(options =>

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Friends_Date_API.Extension;
 
 namespace Friends_Date_API.Entities
 {
@@ -27,6 +26,8 @@ namespace Friends_Date_API.Entities
         public ICollection<Photo> Photos { get; set; }
         public ICollection<UserLike> LikedByUsers { get; set; } // list of user that like currently logged in user (amake koto jon like korse)
         public ICollection<UserLike> LikedUser { get; set; } // list of user liked by currently logged in user (ami koto jon ke like korechi)
+        public ICollection<Message> MessageSent { get; set; }
+        public ICollection<Message> MessageReceived { get; set; }
     }
 
 }
