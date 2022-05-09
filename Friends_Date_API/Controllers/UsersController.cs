@@ -32,7 +32,7 @@ namespace Friends_Date_API.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        /*[Authorize(Roles = "Admin")] we will use policy based authorization instead of this*/
         public async Task<ActionResult<IEnumerable<MemberDto>>> GetAllUsers([FromQuery] UserParams userParams)
         {
             var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
@@ -57,6 +57,7 @@ namespace Friends_Date_API.Controllers
         }
 
         [HttpGet("GetUserByUsername/{username}", Name = "GetUserByUsername")]
+        /*[Authorize(Roles = "Member")] we will use policy based authorization instead of this*/ 
         public async Task<ActionResult<MemberDto>> GetUser(string username)
         {
             return await _userRepository.GetMemberByUserNameAsync(username);
@@ -67,6 +68,8 @@ namespace Friends_Date_API.Controllers
         {
             //User.GetUsername() gives the user name from toaken that API uses to authenticate of the user
             var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+
+            var a = User.GetUsername();
 
             _mapper.Map(memberUpdateDto, user);
 
