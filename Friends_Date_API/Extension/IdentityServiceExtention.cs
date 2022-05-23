@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Friends_Date_API.Extension
 {
@@ -28,7 +29,7 @@ namespace Friends_Date_API.Extension
                 //contains all required for role to get list of role, add role etc
                 .AddRoleManager<RoleManager<Role>>()
 
-                //contains all related method for user authentication
+                //contains all related method for user authentication 
                 .AddSignInManager<SignInManager<User>>()
 
                 // for validate the role
@@ -49,6 +50,29 @@ namespace Friends_Date_API.Extension
                             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"])), // get or set the security key
                             ValidateIssuer = false, // api server will issue the key
                             ValidateAudience = false, // who uses the token as audience? Angular
+                        };
+
+                        // this is for signal R access token for authentication we will pass the token from
+                        // query string because websocket it does not support header
+
+                        options.Events = new JwtBearerEvents
+                        {
+                            OnMessageReceived = (context) =>
+                            {
+                                // client wil hold informaion through access_token
+                                var accessToken = context.Request.Query["access_token"];
+
+                                // where the request coming through
+                                var path = context.HttpContext.Request.Path;
+
+                                if (!string.IsNullOrEmpty(accessToken) && 
+                                     path.StartsWithSegments("/hubs"))
+                                {
+                                    context.Token = accessToken;
+                                }
+
+                                return Task.CompletedTask;
+                            }
                         };
                     });
 

@@ -13,7 +13,9 @@ namespace Friends_Date_API.Entities
         public User Recipient { get; set; }
         public string Content { get; set; }
         public DateTime? DateRead { get; set; }
-        public DateTime MessageSent { get; set; } = DateTime.Now;
+
+        // The reason for using UTC that everywhere user get the message in their local time
+        public DateTime MessageSent { get; set; } = DateTime.UtcNow;
         public bool SenderDeleted { get; set; }
         public bool RecipientDeleted { get; set; }
     }

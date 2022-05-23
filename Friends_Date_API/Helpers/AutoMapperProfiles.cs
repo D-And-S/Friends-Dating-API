@@ -2,6 +2,7 @@
 using Friends_Date_API.DTO;
 using Friends_Date_API.Entities;
 using Friends_Date_API.Extension;
+using System;
 using System.Linq;
 
 namespace Friends_Date_API.Helpers
@@ -25,6 +26,10 @@ namespace Friends_Date_API.Helpers
                          src.Sender.Photos.FirstOrDefault(x => x.IsMain).Url))
                   .ForMember(dest => dest.RecipientPhotoUrl, opt => opt.MapFrom(src =>
                          src.Recipient.Photos.FirstOrDefault(x => x.IsMain).Url));
+
+            // this is basically means when we return date to our client we will have the z in the end of datetime
+            // which will provide our local time according to the time zone
+            CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
         }
     }
 }

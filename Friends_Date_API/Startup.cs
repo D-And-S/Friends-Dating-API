@@ -3,6 +3,7 @@ using Friends_Date_API.Extension;
 using Friends_Date_API.Interfaces;
 using Friends_Date_API.Middleware;
 using Friends_Date_API.Services;
+using Friends_Date_API.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -26,6 +27,7 @@ namespace Friends_Date_API
     public class Startup
     {
         private readonly IConfiguration _config;
+       
 
         public Startup(IConfiguration config)
         {
@@ -48,7 +50,9 @@ namespace Friends_Date_API
             services.AddIdentitySerives(_config);
 
             // To resolve cors policy
-            services.AddCors();        
+            services.AddCors();
+
+           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -67,15 +71,27 @@ namespace Friends_Date_API
 
             app.UseRouting();
 
-            app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200"));
-           
+            app.UseCors(policy => policy.AllowAnyHeader()
+                .AllowAnyMethod()
+                .WithOrigins("https://localhost:4200")
+                .AllowCredentials()); // since we use signal R we need allowCredentials;
+
             app.UseAuthentication(); // JWT Authentication
 
             app.UseAuthorization();
 
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+
+                //// since we register signal R we need to configure our connection
+                ///*
+                //    1.  we configure route for incoming request
+                // */
+                endpoints.MapHub<MessageHub>("hubs/message");
+                endpoints.MapHub<PresenceHub>("hubs/presence");
+                
             });
         }
     }
