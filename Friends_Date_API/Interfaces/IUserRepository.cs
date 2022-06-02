@@ -9,8 +9,8 @@ namespace Friends_Date_API.Interfaces
     public interface IUserRepository
     {
         void Update(User user);
-        Task<bool> SaveAllsync();
         Task<IEnumerable<User>> GetAllUsersAsync();
+        Task<string> GetUserGender(string username);
         Task<User> GetUserByIdAsync(int id);
         Task<User> GetUserByUsernameAsync(string username);
         Task<IEnumerable<MemberDto>> GetEveryMembersAsync();

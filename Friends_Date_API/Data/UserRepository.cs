@@ -41,10 +41,6 @@ namespace Friends_Date_API.Data
                 .ToListAsync();
         }
 
-        public async Task<bool> SaveAllsync()
-        {
-            return await _context.SaveChangesAsync() > 0;
-        }
 
         public void Update(User user)
         {
@@ -117,6 +113,13 @@ namespace Friends_Date_API.Data
             //        .ProjectTo<MemberDto>(_mapper.ConfigurationProvider) // configuration provider will detect our automapper profile
             //        .SingleOrDefaultAsync();
 
+        }
+
+        public async Task<string> GetUserGender(string username)
+        {
+            return await _context.Users
+                .Where(x=>x.UserName == username)
+                .Select(y=>y.UserName).FirstOrDefaultAsync();
         }
     }
 }

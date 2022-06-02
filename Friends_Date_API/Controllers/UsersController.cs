@@ -18,15 +18,15 @@ namespace Friends_Date_API.Controllers
 {
     public class UsersController : BaseAPIController
     {
-        private readonly IUserRepository _userRepository;
+        private IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IPhotoService _photoService;
 
-        public UsersController(IUserRepository userRepository,
+        public UsersController(IUnitOfWork unitOfWork,
                                IMapper mapper,
                                IPhotoService photoService)
         {
-            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _photoService = photoService;
         }
@@ -35,13 +35,13 @@ namespace Friends_Date_API.Controllers
         /*[Authorize(Roles = "Admin")] we will use policy based authorization instead of this*/
         public async Task<ActionResult<IEnumerable<MemberDto>>> GetAllUsers([FromQuery] UserParams userParams)
         {
-            var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
-            userParams.CurrentUsername = user.UserName;
+            var gender = await _unitOfWork.UserRepository.GetUserGender(User.GetUsername());
+            userParams.CurrentUsername = User.GetUsername();
 
             if (string.IsNullOrEmpty(userParams.Gender))
-                userParams.Gender = user.Gender == "male" ? "female" : "male";
+                userParams.Gender = gender == "male" ? "female" : "male";
 
-            var users = await _userRepository.GetAllMembersAsync(userParams);
+            var users = await _unitOfWork.UserRepository.GetAllMembersAsync(userParams);
 
             Response.AddPaginationHeader(users.CurrentPage, users.PageSize,
                 users.TotalCount, users.TotalPages);
@@ -52,7 +52,7 @@ namespace Friends_Date_API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<MemberDto>> GetUser(int id)
         {
-            var user = await _userRepository.GetUserByIdAsync(id);
+            var user = await _unitOfWork.UserRepository.GetUserByIdAsync(id);
             return _mapper.Map<MemberDto>(user);
         }
 
@@ -60,22 +60,22 @@ namespace Friends_Date_API.Controllers
         /*[Authorize(Roles = "Member")] we will use policy based authorization instead of this*/ 
         public async Task<ActionResult<MemberDto>> GetUser(string username)
         {
-            return await _userRepository.GetMemberByUserNameAsync(username);
+            return await _unitOfWork.UserRepository.GetMemberByUserNameAsync(username);
         }
 
         [HttpPut("UpdateUser")]
         public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdateDto)
         {
             //User.GetUsername() gives the user name from toaken that API uses to authenticate of the user
-            var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+            var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(User.GetUsername());
 
             var a = User.GetUsername();
 
             _mapper.Map(memberUpdateDto, user);
 
-            _userRepository.Update(user);
+            _unitOfWork.UserRepository.Update(user);
 
-            if (await _userRepository.SaveAllsync()) return NoContent();
+            if (await _unitOfWork.Complete()) return NoContent();
 
             return BadRequest("Faild to update user");
         }
@@ -83,7 +83,7 @@ namespace Friends_Date_API.Controllers
         [HttpPost("Add-Photo")]
         public async Task<ActionResult<PhotoDto>> AddPhoto(IFormFile file)
         {
-            var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+            var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(User.GetUsername());
 
             var result = await _photoService.AddPhotoAsynch(file);
 
@@ -102,7 +102,7 @@ namespace Friends_Date_API.Controllers
 
             user.Photos.Add(photo);
 
-            if (await _userRepository.SaveAllsync())
+            if (await _unitOfWork.Complete())
             {
                 //return _mapper.Map<PhotoDto>(photo);
                 return CreatedAtRoute("GetUserByUsername", new { username = user.UserName }, _mapper.Map<PhotoDto>(photo));
@@ -115,7 +115,7 @@ namespace Friends_Date_API.Controllers
         [HttpPut("set-main-photo/{photoId}")]
         public async Task<ActionResult> SetMainPhoto(int photoId)
         {
-            var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+            var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(User.GetUsername());
 
             var photo = user.Photos.FirstOrDefault(p => p.Id == photoId);
 
@@ -126,7 +126,7 @@ namespace Friends_Date_API.Controllers
             if (currntMainPhoto != null) currntMainPhoto.IsMain = false;
             photo.IsMain = true;
 
-            if (await _userRepository.SaveAllsync()) return NoContent();
+            if (await _unitOfWork.Complete()) return NoContent();
 
             // in case if any thing wrong happen
             return BadRequest("Failed to set main photo");
@@ -135,7 +135,7 @@ namespace Friends_Date_API.Controllers
         [HttpDelete("delete-photo/{photoId}")]
         public async Task<ActionResult> DeletePhoto(int photoId)
         {
-            var user = await _userRepository.GetUserByUsernameAsync(User.GetUsername());
+            var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(User.GetUsername());
 
             var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
 
@@ -153,7 +153,7 @@ namespace Friends_Date_API.Controllers
 
             user.Photos.Remove(photo);
 
-            if (await _userRepository.SaveAllsync()) return Ok();
+            if (await _unitOfWork.Complete()) return Ok();
 
             return BadRequest("Failed to Delete This Photo");
 

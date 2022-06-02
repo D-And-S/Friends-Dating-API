@@ -75,28 +75,32 @@ namespace Friends_Date_API.Data
         {
             var query = _context.Messages
                 .OrderByDescending(m => m.MessageSent)
+                // we use project to here for query optimization
+                .ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
                 .AsQueryable();
 
             query = messageParams.Container switch
             {
-                "Inbox" => query.Where(u => u.Recipient.UserName == messageParams.Username && u.RecipientDeleted == false),
-                "Outbox" => query.Where(u => u.Sender.UserName == messageParams.Username && u.SenderDeleted == false),
+                "Inbox" => query.Where(u => u.RecipientUsername == messageParams.Username && u.RecipientDeleted == false),
+                "Outbox" => query.Where(u => u.SenderUsername == messageParams.Username && u.SenderDeleted == false),
                 //if no messge req
-                _ => query.Where(u => u.Recipient.UserName == messageParams.Username && u.RecipientDeleted == false && u.DateRead == null)
+                _ => query.Where(u => u.RecipientUsername == messageParams.Username && u.RecipientDeleted == false && u.DateRead == null)
             };
 
-            var message = query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider);
-            return await PageList<MessageDto>.CreateAsync(message, messageParams.PageNumber, messageParams.PageSize);
+            // if we use here it will create long query
+            //var message = query.ProjectTo<MessageDto>(_mapper.ConfigurationProvider);
+
+            return await PageList<MessageDto>.CreateAsync(query, messageParams.PageNumber, messageParams.PageSize);
 
         }
 
         public async Task<IEnumerable<MessageDto>> GetMessageThread(string currentUsername, string recipientUsername)
         {
             var messages = await _context.Messages
-                .Include(u => u.Sender)
-                .ThenInclude(p => p.Photos)
-                .Include(u => u.Recipient)
-                .ThenInclude(p => p.Photos)
+                //.Include(u => u.Sender)
+                //.ThenInclude(p => p.Photos)
+                //.Include(u => u.Recipient)
+                //.ThenInclude(p => p.Photos)
                 .Where(m => (m.Recipient.UserName == currentUsername
                          && m.RecipientDeleted == false
                          && m.SenderUsername == recipientUsername)
@@ -107,10 +111,11 @@ namespace Friends_Date_API.Data
 
                 )
                 .OrderBy(m => m.MessageSent)
+                .ProjectTo<MessageDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
             var unreadMessages = messages.Where(m => m.DateRead == null
-                && m.Recipient.UserName == currentUsername).ToList();
+                && m.RecipientUsername == currentUsername).ToList();
 
 
             //any undreadMessages where recipient is the current username will gonan mark as read
@@ -121,10 +126,10 @@ namespace Friends_Date_API.Data
                     message.DateRead = DateTime.UtcNow;
                 }
 
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
             }
 
-            return _mapper.Map<IEnumerable<MessageDto>>(messages);
+            return messages;
         }
 
         public void RemoveConnection(Connection connection)
@@ -135,11 +140,6 @@ namespace Friends_Date_API.Data
         public void RemoveGroup(Group group)
         {
             _context.Groups.Remove(group);
-        }
-
-        public async Task<bool> SaveAllAsync()
-        {
-            return await _context.SaveChangesAsync() > 0;
         }
     }
 }

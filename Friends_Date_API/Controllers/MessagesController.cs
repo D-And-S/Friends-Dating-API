@@ -16,18 +16,15 @@ namespace Friends_Date_API.Controllers
     [Authorize]
     public class MessagesController : BaseAPIController
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IMessageRepository _messageRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly DataContext _context;
 
-        public MessagesController(IUserRepository userRepository,
-                                  IMessageRepository messageRepository,
+        public MessagesController(IUnitOfWork unitOfWork,
                                   IMapper mapper,
                                   DataContext context)
         {
-            _userRepository = userRepository;
-            _messageRepository = messageRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _context = context;
         }
@@ -40,8 +37,8 @@ namespace Friends_Date_API.Controllers
             if (username == creteMessageDto.RecipientUsername.ToLower())
                 return BadRequest("You cannot send messages to yourself");
 
-            var sender = await _userRepository.GetUserByUsernameAsync(username);
-            var recipient = await _userRepository.GetUserByUsernameAsync(creteMessageDto.RecipientUsername);
+            var sender = await _unitOfWork.UserRepository.GetUserByUsernameAsync(username);
+            var recipient = await _unitOfWork.UserRepository.GetUserByUsernameAsync(creteMessageDto.RecipientUsername);
 
             if (recipient == null) return NotFound();
 
@@ -54,9 +51,9 @@ namespace Friends_Date_API.Controllers
                 Content = creteMessageDto.Content
             };
 
-            _messageRepository.AddMessage(message);
+            _unitOfWork.MessageRepository.AddMessage(message);
 
-            if (await _messageRepository.SaveAllAsync())
+            if (await _unitOfWork.Complete())
                 return Ok(_mapper.Map<MessageDto>(message));
 
             return BadRequest("Failed to send messages");
@@ -67,7 +64,7 @@ namespace Friends_Date_API.Controllers
         {
             messageParams.Username = User.GetUsername();
 
-            var messages = await _messageRepository.GetMessagesForUser(messageParams);
+            var messages = await _unitOfWork.MessageRepository.GetMessagesForUser(messageParams);
 
             Response.AddPaginationHeader(messages.CurrentPage, messages.PageSize, messages.TotalCount, messages.TotalPages);
 
@@ -79,7 +76,7 @@ namespace Friends_Date_API.Controllers
         {
             var currentUsername = User.GetUsername();
 
-            return Ok(await _messageRepository.GetMessageThread(currentUsername, username)); // other user name
+            return Ok(await _unitOfWork.MessageRepository.GetMessageThread(currentUsername, username)); // other user name
         }
 
         [HttpDelete("delete/{id}")]
@@ -87,7 +84,7 @@ namespace Friends_Date_API.Controllers
         {
             var username = User.GetUsername();
 
-            var message = await _messageRepository.GetMessage(id);
+            var message = await _unitOfWork.MessageRepository.GetMessage(id);
 
             if (message.Sender.UserName != username && message.Recipient.UserName != username) return Unauthorized();
 
@@ -95,9 +92,9 @@ namespace Friends_Date_API.Controllers
 
             if (message.Recipient.UserName == username) message.RecipientDeleted = true;
 
-            if (message.SenderDeleted && message.RecipientDeleted) _messageRepository.DeleteMessage(message);
+            if (message.SenderDeleted && message.RecipientDeleted) _unitOfWork.MessageRepository.DeleteMessage(message);
 
-            if (await _messageRepository.SaveAllAsync()) return Ok();
+            if (await _unitOfWork.Complete()) return Ok();
 
             return BadRequest("Problme deleting the message");
         }

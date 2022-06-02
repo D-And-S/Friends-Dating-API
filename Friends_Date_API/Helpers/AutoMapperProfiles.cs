@@ -29,7 +29,8 @@ namespace Friends_Date_API.Helpers
 
             // this is basically means when we return date to our client we will have the z in the end of datetime
             // which will provide our local time according to the time zone
-            CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
+            // we convert our date time in datacontext we dont' need this
+            //CreateMap<DateTime, DateTime>().ConvertUsing(d => DateTime.SpecifyKind(d, DateTimeKind.Utc));
         }
     }
 }
