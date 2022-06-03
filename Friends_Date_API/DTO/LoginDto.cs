@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Friends_Date_API.Entities
+namespace Friends_Date_API.DTO
 {
-    public class AppUser
+    public class LoginDto
     {
-        public int Id { get; set; }
+        [Required]
+        public string UserName { get; set; }
 
         [Required]
-        [StringLength(255)]
-        public string UserName { get; set; }
+        public string Password { get; set; }
     }
 }
