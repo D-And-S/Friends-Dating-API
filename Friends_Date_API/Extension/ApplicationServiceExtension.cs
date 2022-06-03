@@ -45,7 +45,7 @@ namespace Friends_Date_API.Extension
             // this will find and initialize the auto mapper profile
             services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
 
-            services.AddDbContextPool<DataContext>(options =>
+            services.AddDbContext<DataContext>(options =>
             {
                 // for sql server
                 //options.UseSqlServer(config.GetConnectionString("DefaultConnection"))
