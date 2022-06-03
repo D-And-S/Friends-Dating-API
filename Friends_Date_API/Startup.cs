@@ -42,12 +42,7 @@ namespace Friends_Date_API
             //Created the Extension method of IServiceCollection for db connecton and token
             services.AddApplicationServices(_config);
             services.AddControllers();
-
-            services.AddHttpsRedirection(options =>
-            {
-                //set port
-                //options.HttpsPort = 5001;
-            });
+           
             //Extention Method
             services.AddSwaggerServices();
 
