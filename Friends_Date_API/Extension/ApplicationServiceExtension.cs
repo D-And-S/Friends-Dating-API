@@ -13,6 +13,8 @@ namespace Friends_Date_API.Extension
 
     /*
         --> exetention method for service
+
+
         --> extention class will be always static
      */
     public static class ApplicationServiceExtension
