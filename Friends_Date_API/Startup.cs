@@ -43,6 +43,10 @@ namespace Friends_Date_API
             services.AddApplicationServices(_config);
             services.AddControllers();
 
+            services.AddHttpsRedirection(options =>
+            {
+                options.HttpsPort = 5001;
+            });
             //Extention Method
             services.AddSwaggerServices();
 
