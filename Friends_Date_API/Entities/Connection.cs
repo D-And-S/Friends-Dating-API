@@ -1,5 +1,6 @@
 ﻿namespace Friends_Date_API.Entities
 {
+    // connection and group is for signal R class
     public class Connection
     {
         public Connection()

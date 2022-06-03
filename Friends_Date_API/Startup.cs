@@ -77,13 +77,18 @@ namespace Friends_Date_API
                 .AllowCredentials()); // since we use signal R we need allowCredentials;
 
             app.UseAuthentication(); // JWT Authentication
-
             app.UseAuthorization();
 
+            // if there is index.html then it will use that
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+
+                // whenever it will not find the route it will hit index method of fallback controller
+                endpoints.MapFallbackToController("Index", "Fallback");
 
                 //// since we register signal R we need to configure our connection
                 ///*
@@ -91,7 +96,8 @@ namespace Friends_Date_API
                 // */
                 endpoints.MapHub<MessageHub>("hubs/message");
                 endpoints.MapHub<PresenceHub>("hubs/presence");
-                
+
+
             });
         }
     }
