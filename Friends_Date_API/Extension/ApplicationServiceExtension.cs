@@ -47,10 +47,9 @@ namespace Friends_Date_API.Extension
 
             services.AddDbContext<DataContext>(options =>
             {
-                // for sql server
-                //options.UseSqlServer(config.GetConnectionString("DefaultConnection"))
 
-                //for postgres
+
+                //for Production
                 var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
                 string connStr;
@@ -83,7 +82,15 @@ namespace Friends_Date_API.Extension
 
                 // Whether the connection string came from the local development configuration file
                 // or from the environment variable from Heroku, use it to set up your DbContext.
-                options.UseNpgsql(connStr);
+
+                if (env == "Development" && config["DefaultDataBase"] == "SQL-Server")
+                {
+                    options.UseSqlServer(connStr);
+                }
+                else
+                {
+                    options.UseNpgsql(connStr);
+                }
 
             });
 
