@@ -86,6 +86,7 @@ namespace Friends_Date_API.Extension
                 if (env == "Development" && config["DefaultDataBase"] == "SQL-Server")
                 {
                     options.UseSqlServer(connStr);
+
                 }
                 else
                 {
